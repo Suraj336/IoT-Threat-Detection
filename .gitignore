@@ -1,0 +1,12 @@
+data/clients/
+data/alerts.csv
+models/*.pt
+models/metrics.csv
+__pycache__/
+*.pyc
+.venv/
+venv/
+dashboard/users.json
+dashboard/.env
+dashboard/venv/
+.DS_Store
