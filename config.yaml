@@ -1,0 +1,28 @@
+# Central hyperparameter config. Every script reads from here so you tune in one place.
+
+data:
+  num_clients: 10
+  samples_per_client: 2000
+  non_iid_alpha: 0.3        # Dirichlet concentration; lower = more non-IID (heterogeneous homes)
+  num_features: 20
+  classes: ["benign", "scan", "ddos", "brute_force"]
+  test_split: 0.2
+  seed: 42
+
+model:
+  hidden_dims: [64, 32]
+  dropout: 0.2
+
+federated:
+  rounds: 20
+  local_epochs: 2
+  batch_size: 32
+  learning_rate: 0.01
+  fraction_fit: 1.0          # fraction of clients sampled per round
+  min_available_clients: 10
+
+privacy:
+  enable_dp: true
+  max_grad_norm: 1.0         # L2 clipping threshold per client update
+  noise_multiplier: 1.0      # Gaussian noise std multiplier (higher = more private, less accurate)
+  target_delta: 1e-5

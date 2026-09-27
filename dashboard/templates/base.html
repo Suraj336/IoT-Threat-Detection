@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}IoT Threat Monitor{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if user %}
+<div class="app-shell">
+  <aside class="sidebar">
+    <div>
+      <div class="brand">IoT Threat Monitor</div>
+      <div class="brand-sub">Federated detection network</div>
+    </div>
+    <nav class="nav-group">
+      <a class="nav-link {% if active == 'dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Overview</a>
+      {% if user.role == 'admin' %}
+      <a class="nav-link {% if active == 'users' %}active{% endif %}" href="{{ url_for('admin_users') }}">Manage users</a>
+      {% endif %}
+    </nav>
+    <div class="sidebar-footer">
+      <div>{{ user.username }}</div>
+      <div style="margin-top: 4px;"><span class="role-pill">{{ user.role }}</span></div>
+      <div style="margin-top: 12px;"><a class="nav-link" style="padding-left:0" href="{{ url_for('logout') }}">Log out</a></div>
+    </div>
+  </aside>
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% else %}
+  {% block auth_content %}{% endblock %}
+{% endif %}
+</body>
+</html>

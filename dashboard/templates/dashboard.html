@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Overview — IoT Threat Monitor{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Network overview</h1>
+    <p>Federated threat-detection model performance and live alerts across simulated smart homes.</p>
+  </div>
+</div>
+
+<div class="kpi-grid" id="kpi-grid">
+  <div class="kpi-card"><div class="kpi-label">Latest round accuracy</div><div class="kpi-value" id="kpi-accuracy">—</div></div>
+  <div class="kpi-card"><div class="kpi-label">Latest round F1 (macro)</div><div class="kpi-value" id="kpi-f1">—</div></div>
+  <div class="kpi-card severity-critical"><div class="kpi-label">Critical alerts</div><div class="kpi-value" id="kpi-critical">—</div></div>
+  <div class="kpi-card severity-high"><div class="kpi-label">High-severity alerts</div><div class="kpi-value" id="kpi-high">—</div></div>
+</div>
+
+<div class="panel">
+  <h2>Global model accuracy over training rounds</h2>
+  <div class="chart-wrap"><canvas id="metrics-chart"></canvas></div>
+</div>
+
+<div class="panel">
+  <h2>Alerts</h2>
+  <div id="alerts-container"><div class="empty-state">Loading…</div></div>
+</div>
+
+{% if user.role in ('admin', 'analyst') %}
+<div class="panel">
+  <h2>Smart homes in the federation</h2>
+  <div class="client-grid" id="client-grid"><div class="empty-state">Loading…</div></div>
+</div>
+{% endif %}
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>window.CURRENT_ROLE = {{ user.role|tojson }};</script>
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

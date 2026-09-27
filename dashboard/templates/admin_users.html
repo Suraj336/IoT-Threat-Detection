@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% block title %}Manage users — IoT Threat Monitor{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Manage users</h1>
+    <p>Add or remove dashboard accounts and set their role.</p>
+  </div>
+</div>
+
+<div class="panel">
+  <h2>Current users</h2>
+  {% for u in users %}
+  <div class="user-row">
+    <div>
+      <strong>{{ u.username }}</strong>
+      <span class="role-pill" style="margin-left: 8px;">{{ u.role }}</span>
+    </div>
+    {% if u.username != user.username %}
+    <form method="post" action="{{ url_for('admin_delete_user', username=u.username) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn-danger" type="submit">Remove</button>
+    </form>
+    {% else %}
+    <span style="color: var(--text-muted); font-size: 12.5px;">signed in now</span>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<div class="panel">
+  <h2>Add a user</h2>
+  <form method="post" action="{{ url_for('admin_create_user') }}" style="max-width: 340px;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label for="new-username">Username</label>
+      <input id="new-username" name="username" type="text" required>
+    </div>
+    <div class="field">
+      <label for="new-password">Password</label>
+      <input id="new-password" name="password" type="password" required minlength="8">
+    </div>
+    <div class="field">
+      <label for="new-role">Role</label>
+      <select id="new-role" name="role">
+        {% for r in roles %}
+        <option value="{{ r }}">{{ r }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="primary" type="submit">Create user</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Sign in — IoT Threat Monitor{% endblock %}
+{% block auth_content %}
+<div class="auth-shell">
+  <div class="auth-card">
+    <h1>IoT Threat Monitor</h1>
+    <p class="sub">Sign in to view the federated detection network.</p>
+
+    {% if error %}
+    <div class="error-banner">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" action="{{ url_for('login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <div class="field">
+        <label for="username">Username</label>
+        <input id="username" name="username" type="text" autocomplete="username" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" autocomplete="current-password" required>
+      </div>
+      <button class="primary" type="submit">Sign in</button>
+    </form>
+
+    <div class="demo-note">
+      Demo accounts (change these in <code>dashboard/README.md</code>): <br>
+      admin / analyst / viewer — see README for default passwords.
+    </div>
+  </div>
+</div>
+{% endblock %}
