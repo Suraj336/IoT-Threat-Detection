@@ -1,0 +1,41 @@
+# Continuous integration for IoT-Threat-Detection.
+
+
+name: CI
+
+on:
+  push:
+    branches: main 
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: github.com/Suraj336/IoT-Threat-Detection
+        uses: actions/checkout@v4
+
+      # Python 3.11 on purpose: requirements.txt pins older library versions
+      # (e.g. torch==2.2.2) that have no wheels for Python 3.13+.
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            dashboard/requirements.txt
+
+      # PyTorch is a large download, so the first run is slow; the pip cache makes later runs faster.
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements-dev.txt
+          pip install -r dashboard/requirements.txt
+
+      - name: Syntax check
+        run: python -m compileall -q src data dashboard
+
+      - name: Run tests
+        run: pytest -v
