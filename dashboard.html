@@ -100,6 +100,21 @@
     border: 1px dashed var(--border);
     border-radius: 10px;
   }
+  .live-section { margin-top: 28px; }
+  .live-section h2 { font-size: 16px; margin: 0 0 4px; }
+  .live-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; margin-top: 14px; }
+  .count-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+  .count-row .stat-card { min-width: 120px; }
+  table.flows { width: 100%; border-collapse: collapse; font-size: 12px; }
+  table.flows th, table.flows td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.flows th { color: var(--muted); font-weight: 500; }
+  .table-wrap { max-height: 360px; overflow: auto; }
+  .tag { padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+  .tag-benign { background: rgba(72,187,120,0.15); color: var(--good); }
+  .tag-scan { background: rgba(246,173,85,0.15); color: var(--accent2); }
+  .tag-brute_force { background: rgba(245,101,101,0.15); color: var(--accent3); }
+  .tag-ddos { background: rgba(245,101,101,0.35); color: #fff; }
+  .status-stopped { background: rgba(143,163,179,0.15); color: var(--muted); }
 </style>
 </head>
 <body>
@@ -133,6 +148,20 @@
   <div id="content">
     <div class="empty-state">Waiting for training to start… run <code>python src/server.py</code></div>
   </div>
+
+  <section class="live-section" id="liveSection" hidden>
+    <h2>Live detection</h2>
+    <div class="sub" id="liveSub">Classifying real traffic — polling <code>live_detections.json</code> every 3s</div>
+    <div class="count-row" id="liveCounts"></div>
+    <div class="live-grid">
+      <div class="chart-card"><h3>Latest alerts (non-benign flows)</h3>
+        <div class="table-wrap"><table class="flows"><thead><tr><th>Time</th><th>Type</th><th>Conf.</th><th>Source</th><th>Destination</th><th>Pkts</th></tr></thead><tbody id="alertRows"></tbody></table></div>
+      </div>
+      <div class="chart-card"><h3>Devices on the hotspot</h3>
+        <div class="table-wrap"><table class="flows"><thead><tr><th>Device</th><th>Benign</th><th>Scan</th><th>DDoS</th><th>Brute force</th></tr></thead><tbody id="deviceRows"></tbody></table></div>
+      </div>
+    </div>
+  </section>
 
 <script>
 const METRIC_COLORS = {
@@ -230,6 +259,40 @@ async function poll() {
 
 poll();
 setInterval(poll, 5000);
+
+// ---- Live detection panel (live_detections.json from src/live_detector.py) ----
+const LIVE_CLASSES = ["benign", "scan", "ddos", "brute_force"];
+const LIVE_LABELS = { benign: "Benign", scan: "Scan", ddos: "DDoS", brute_force: "Brute force" };
+function esc(v) {
+  return String(v).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+async function pollLive() {
+  try {
+    const res = await fetch("live_detections.json?_=" + Date.now(), { cache: "no-store" });
+    if (!res.ok) return;
+    const d = await res.json();
+    document.getElementById("liveSection").hidden = false;
+    const age = Math.max(0, Math.round(Date.now() / 1000 - d.updated_at));
+    const status = d.status === "running" && age > 15 ? "stopped" : d.status;
+    let sub = `<span class="status-pill status-${esc(status)}">${esc(status)}</span> &nbsp;on <code>${esc(d.interface)}</code> · ${d.active_flows ?? 0} open flows · updated ${age}s ago`;
+    if (d.recording_label) sub += ` · recording as <b>${esc(d.recording_label)}</b>`;
+    document.getElementById("liveSub").innerHTML = sub;
+    document.getElementById("liveCounts").innerHTML = LIVE_CLASSES.map(c =>
+      `<div class="stat-card"><div class="stat-label">${LIVE_LABELS[c]} flows</div><div class="stat-value">${(d.totals || {})[c] ?? 0}</div></div>`).join("");
+    const alerts = (d.recent || []).filter(e => e.prediction !== "benign").slice(0, 100);
+    document.getElementById("alertRows").innerHTML = alerts.length ? alerts.map(e =>
+      `<tr><td>${new Date(e.time * 1000).toLocaleTimeString()}</td><td><span class="tag tag-${esc(e.prediction)}">${esc(LIVE_LABELS[e.prediction] || e.prediction)}</span></td><td>${(e.confidence * 100).toFixed(0)}%</td><td>${esc(e.src)}:${esc(e.sport)}</td><td>${esc(e.dst)}:${esc(e.dport)} ${esc(e.proto)}</td><td>${e.packets}</td></tr>`).join("")
+      : `<tr><td colspan="6" style="color:var(--muted)">No alerts yet</td></tr>`;
+    const devs = Object.entries(d.devices || {});
+    document.getElementById("deviceRows").innerHTML = devs.length ? devs.map(([ip, c]) =>
+      `<tr><td>${esc(ip)}</td>${LIVE_CLASSES.map(k => `<td>${c[k] ?? 0}</td>`).join("")}</tr>`).join("")
+      : `<tr><td colspan="5" style="color:var(--muted)">No traffic yet</td></tr>`;
+  } catch (e) {
+    console.error("pollLive() failed:", e);
+  }
+}
+pollLive();
+setInterval(pollLive, 3000);
 </script>
 </body>
 </html>
