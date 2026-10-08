@@ -294,5 +294,59 @@ async function pollLive() {
 pollLive();
 setInterval(pollLive, 3000);
 </script>
+<!-- Paste this into dashboard.html, just before </body> -->
+<section id="devices-panel" style="margin:16px 0;font-family:sans-serif">
+  <h2>Connected devices <small id="dev-count"></small></h2>
+  <table style="border-collapse:collapse;width:100%">
+    <thead>
+      <tr style="text-align:left;border-bottom:1px solid #888">
+        <th>Status</th><th>Name</th><th>IP</th><th>MAC</th><th>Signal</th><th>Connected</th>
+      </tr>
+    </thead>
+    <tbody id="dev-rows"></tbody>
+  </table>
+</section>
+<script>
+(function () {
+  function fmtTime(s) {
+    if (s == null) return "";
+    var h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    return h ? h + "h " + m + "m" : m + "m " + (s % 60) + "s";
+  }
+  function cell(row, text) {
+    var td = document.createElement("td");
+    td.textContent = text;            // textContent: device names can't inject HTML
+    td.style.padding = "4px 8px";
+    row.appendChild(td);
+  }
+  function refresh() {
+    fetch("live_devices.json?_=" + Date.now())
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        var body = document.getElementById("dev-rows");
+        body.innerHTML = "";
+        var online = 0;
+        data.devices.forEach(function (d) {
+          if (d.online) online++;
+          var tr = document.createElement("tr");
+          cell(tr, d.online ? "\u{1F7E2} Online" : "\u26AA Offline");
+          cell(tr, d.name || "(unknown)");
+          cell(tr, d.ip);
+          cell(tr, d.mac + (d.private_mac ? " (private)" : ""));
+          cell(tr, d.signal_dbm != null ? d.signal_dbm + " dBm" : "");
+          cell(tr, fmtTime(d.connected_s));
+          body.appendChild(tr);
+        });
+        document.getElementById("dev-count").textContent =
+          "(" + online + " online, " + data.devices.length + " seen)";
+      })
+      .catch(function () {
+        document.getElementById("dev-count").textContent = "(devices.py not running?)";
+      });
+  }
+  refresh();
+  setInterval(refresh, 3000);
+})();
+</script>
 </body>
 </html>
