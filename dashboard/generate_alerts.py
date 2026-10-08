@@ -41,7 +41,7 @@ def main():
 
     num_features = 20
     model = ThreatClassifier(num_features, len(CLASSES))
-    model.load_state_dict(torch.load(model_path, map_location="cpu"))
+    model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
     model.eval()
 
     client_files = sorted(
