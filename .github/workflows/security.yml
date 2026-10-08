@@ -1,0 +1,74 @@
+name: Security Scan
+
+# DevSecOps security gate: static analysis (SAST) + dependency CVE audit +
+# secret scanning. Runs on every push and PR so findings show up in the
+# commit history as required evidence. Threat-driven, not scanner-only:
+# each tool maps to a concrete threat in the project's threat model.
+#
+#   bandit     -> insecure Python patterns (SAST)      e.g. weak crypto, shell=True
+#   pip-audit  -> known-vulnerable dependencies (SCA)  e.g. a CVE in a pinned lib
+#   gitleaks   -> committed secrets                    e.g. a leaked SECRET_KEY
+#
+# How to use this as remediation evidence for the report:
+#   1. First run surfaces findings (job may go red).
+#   2. Fix them, commit, push.
+#   3. Re-run goes green -> screenshot both runs = "findings + remediation + re-test".
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  sast-bandit:
+    name: SAST (bandit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install bandit
+        run: pip install bandit
+      # -r recurse, -ll report medium severity and up so the gate is meaningful
+      # without drowning in low-confidence noise. JSON artifact is kept as evidence.
+      - name: Run bandit
+        run: |
+          bandit -r src dashboard data -ll -f screen
+          bandit -r src dashboard data -ll -f json -o bandit-report.json || true
+      - name: Upload bandit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  dependency-audit:
+    name: Dependency audit (pip-audit)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install pip-audit
+        run: pip install pip-audit
+      # Audits both the ML pipeline and the dashboard dependency sets against
+      # the Python Advisory Database. --strict makes a CVE fail the job.
+      - name: Audit project dependencies
+        run: pip-audit -r requirements.txt -r dashboard/requirements.txt --strict
+
+  secret-scan:
+    name: Secret scan (gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # full history so a secret committed earlier is still caught
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
