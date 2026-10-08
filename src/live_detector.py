@@ -174,7 +174,7 @@ class Predictor:
             len(FEATURE_COLUMNS), len(CLASSES),
             hidden_dims=cfg["model"]["hidden_dims"], dropout=cfg["model"]["dropout"],
         )
-        self.model.load_state_dict(torch.load(model_path, map_location="cpu"))
+        self.model.load_state_dict(torch.load(model_path, map_location="cpu", weights_only=True))
         self.model.eval()
 
     def predict(self, X):
