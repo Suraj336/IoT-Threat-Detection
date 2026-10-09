@@ -1,18 +1,5 @@
 name: Security Scan
 
-# DevSecOps security gate: static analysis (SAST) + dependency CVE audit +
-# secret scanning. Runs on every push and PR so findings show up in the
-# commit history as required evidence. Threat-driven, not scanner-only:
-# each tool maps to a concrete threat in the project's threat model.
-#
-#   bandit     -> insecure Python patterns (SAST)      e.g. weak crypto, shell=True
-#   pip-audit  -> known-vulnerable dependencies (SCA)  e.g. a CVE in a pinned lib
-#   gitleaks   -> committed secrets                    e.g. a leaked SECRET_KEY
-#
-# How to use this as remediation evidence for the report:
-#   1. First run surfaces findings (job may go red).
-#   2. Fix them, commit, push.
-#   3. Re-run goes green -> screenshot both runs = "findings + remediation + re-test".
 
 on:
   push:
