@@ -59,9 +59,9 @@ before doing anything beyond local evaluation:**
 
 | Username | Password | Role |
 |---|---|---|
-| `admin` | `ChangeMe-Admin1!` | admin |
-| `analyst` | `ChangeMe-Analyst1!` | analyst |
-| `viewer` | `ChangeMe-Viewer1!` | viewer |
+| `uman` | `uman1234` | admin |
+| `suraj` | `suraj123` | analyst |
+| `saugat` | `saugat123` | viewer |
 
 To change a password: log in as admin → Manage users → remove the account →
 re-create it with a new password. (There's no in-place password change yet —
@@ -88,9 +88,6 @@ This is built to be honest about its current scope — a local/demo-grade
 dashboard, not a hardened internet-facing service. Before deploying beyond
 your own machine:
 
-- **Put it behind HTTPS** (a reverse proxy like nginx/Caddy + Let's Encrypt,
-  or a platform that terminates TLS for you), then set
-  `DASHBOARD_SECURE_COOKIES=true`.
 - **Move users.json to a real database** with proper migrations, and add
   password-change/reset flows instead of delete-and-recreate.
 - **Replace the in-memory login-attempt tracker** with something that
