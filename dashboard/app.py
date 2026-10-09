@@ -13,8 +13,6 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("DASHBOARD_SECRET_KEY", "dev-key-change-me")
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-# Set to True once served over HTTPS (see dashboard/README.md). Left False so
-# local http:// development isn't silently broken.
 app.config["SESSION_COOKIE_SECURE"] = os.environ.get("DASHBOARD_SECURE_COOKIES", "false") == "true"
 
 csrf = CSRFProtect(app)
