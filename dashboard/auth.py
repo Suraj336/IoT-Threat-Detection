@@ -1,9 +1,4 @@
 """
-Minimal but real auth: hashed passwords (never stored in plaintext), session
-cookies, and role-based access control. User store is a JSON file for this
-project's scale — swap for a real database before any production use (see
-dashboard/README.md's "Hardening for production" section).
-
 Three roles, deliberately mirroring the privacy-by-design theme of the whole
 project — the dashboard itself practices data minimization by role:
 
@@ -24,10 +19,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 USERS_PATH = os.path.join(os.path.dirname(__file__), "users.json")
 ROLES = ("admin", "analyst", "viewer")
 
-# Very small in-memory rate limiter for login attempts, keyed by username.
-# Resets on process restart -- good enough to blunt naive brute forcing on a
-# single instance; use a real rate limiter (e.g. Flask-Limiter + Redis) in
-# production.
 _login_attempts = {}
 MAX_ATTEMPTS = 5
 LOCKOUT_SECONDS = 60
