@@ -1,9 +1,4 @@
 """
-Runs the trained federated global model (models/global_model.pt) over each
-simulated smart home's traffic and writes out data/alerts.csv — this is what
-the dashboard's Alerts view reads. These are real model predictions, not
-mock data: run `python src/server.py` first so a trained checkpoint exists.
-
 Each row is one flow the model classified as something other than benign,
 which is the same trigger logic a real IDS would use to raise an alert.
 """
