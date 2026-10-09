@@ -1,6 +1,4 @@
 """
-Turns real flows recorded by src/live_detector.py --record <label> into the
-client shards that src/server.py trains on, replacing the synthetic data.
 
     python data/build_real_dataset.py            # reads data/recorded/*.csv
     python src/server.py --dp_noise_multiplier 0.1
